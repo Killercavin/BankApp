@@ -1,71 +1,68 @@
 package bankapp
 
-// ATM interface for the BankApp
+import java.io.IO.readln
+
+
 interface ATM {
-    fun pinAuthentication(): Int {
-        return "012345".toInt()
+    fun pinAuthentication(): Boolean
+}
+
+class BankApp(val owner: String, private val pin: String, initialBalance: Double) : ATM {
+    var balance: Double = if (initialBalance < 0.0) 0.0 else initialBalance
+        private set
+
+    override fun pinAuthentication(): Boolean {
+        print("Enter PIN: ")
+        val inputPin: String = readln()
+        return inputPin == pin // checking for equality not assignment or reference
     }
-} // still figuring out how to implement this authentication even though no polymorphism and inheritance in mind
 
-class BankApp(val owner: String, var balanceProp: Double): ATM {
-
-    // the most silly getter and setter ever by @Cavin
-    var balance: Double = 0.0
-        get() = if (balanceProp < 0.0) 0.0 else balanceProp
-
-        set(value) {
-            field = if (balanceProp < 0.0) 0.0 else value
-        }
-
-    // deposit
-    fun deposit(amount: Double): Double {
+    fun deposit(amount: Double) {
         if (amount <= 0.0) {
-            throw IllegalArgumentException("Amount must be more than 0.0")
+            println("Amount must be greater than zero\n++++++++++++")
         } else {
-            balanceProp += amount
-            println("$owner has deposited $amount into their bank account")
+            balance += amount
+            println("Deposited $$amount\n++++++++++++")
         }
-
-        return balance
     }
 
-    // withdraw
-    fun withdraw(amount: Double): Double {
-        try {
-            if (amount > balance) {
-                println("$owner you have insufficient balance to make this transaction")
-            }  else if (amount <= 0.0) {
-                throw IllegalArgumentException("Amount must be more than 0.0") // feel like this exception is not the right one to catch: I need to rethink about it and figure out the right one
-            } else {
-                balanceProp -= amount
-                println("$owner has withdrawn $amount from their bank account")
-            }
-        } catch (e: ArithmeticException) { // I need to rethink the type of exception to throw here
-            println("Error occurred while withdrawing $amount from your bank account, ${e.message}")
+    fun withdraw(amount: Double) {
+        if (amount <= 0.0) {
+            println("Amount must be greater than zero\n++++++++++++")
+        } else if (amount > balance) {
+            println("Insufficient balance\n++++++++++++")
+        } else {
+            balance -= amount
+            println("Withdrew $$amount\n++++++++++++")
         }
-
-        return balance
     }
 
-    // check balance
     fun checkBalance() {
-        println("$owner your balance is $balance")
+        println("$owner, your balance is $balance\n++++++++++++")
     }
 }
 
 fun main() {
-    val bankApp = BankApp("TestUser", -500.0) // the balance is an overdraft
-    bankApp.checkBalance()
+    val bankApp = BankApp("User", "1234", 0.0)
 
-    bankApp.deposit(121.0)
-    bankApp.checkBalance()
-
-    bankApp.withdraw(30.0)
-
-    bankApp.checkBalance()
-    println(bankApp.pinAuthentication())
+    if (bankApp.pinAuthentication()) {
+        while (true) {
+            println("1. Deposit\n2. Withdraw\n3. Check Balance\n4. Exit")
+            when (readln("Enter your option: ")) {
+                "1" -> {
+                    print("Enter the amount to deposit: ")
+                    bankApp.deposit(readln().toDouble())
+                }
+                "2" -> {
+                        print("Enter the amount to withdraw: ")
+                        bankApp.withdraw(readln().toDouble())
+                    }
+                "3" -> bankApp.checkBalance()
+                "4" -> break
+                else -> println("Invalid option choice.")
+            }
+        }
+    } else {
+        println("Incorrect PIN, exiting...")
+    }
 }
-
-/*
-Something is still missing in my overall logic **..***
- */
